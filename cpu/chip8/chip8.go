@@ -46,3 +46,13 @@ func (c *Chip8) Init() {
 	}
 	rand.Seed(time.Now().UTC().UnixNano())
 }
+
+func (c *Chip8) fetch() uint16 {
+	// In our Chip 8 emulator, data is stored in an array
+	// in which each address contains one byte. As one opcode is
+	// 2 bytes long, we will need to fetch two successive bytes and
+	// merge them to get the actual opcode.
+	// So here we shifted current byte at memory pc left 8 bits, which adds 8 zeros
+	// Next we use the bitwise OR operation to merge them and get two bytes long opcode
+	return uint16(c.memory[c.pc]<<8 | c.memory[c.pc+1])
+}
