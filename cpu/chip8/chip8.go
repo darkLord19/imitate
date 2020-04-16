@@ -198,6 +198,8 @@ func (c *Chip8) EmulateCycle() {
 		Y := opcode & 0x00F0 >> 4
 		if c.v[X] != c.v[Y] {
 			c.pc += 4
+		} else {
+			c.pc += 2
 		}
 		break
 	case 0xA: // 0xANNN: Sets I to the address NNN
@@ -220,15 +222,25 @@ func (c *Chip8) EmulateCycle() {
 		//I value doesn’t change after the execution of this instruction. VF is set to 1 if any
 		//screen pixels are flipped from set to unset when the sprite is drawn,
 		//and to 0 if that doesn’t happen
-		X := opcode & 0x0F00 >> 8
-		Y := opcode & 0x00F0 >> 4
 		c.pc += 2
 		break
 	case 0xE:
 		switch opcode & 0x000F {
 		case 0xE: // 0xEX9E: Skips the next instruction if the key stored in VX is pressed
+			X := opcode & 0x0F00 >> 8
+			if c.Key[c.v[X]] == 1 {
+				c.pc += 4
+			} else {
+				c.pc += 2
+			}
 			break
 		case 0x1: // 0xEXA1: Skips the next instruction if the key stored in VX isn't pressed
+			X := opcode & 0x0F00 >> 8
+			if c.Key[c.v[X]] != 1 {
+				c.pc += 4
+			} else {
+				c.pc += 2
+			}
 			break
 		}
 		c.pc += 2
@@ -236,8 +248,23 @@ func (c *Chip8) EmulateCycle() {
 	case 0xF:
 		switch opcode & 0x00FF {
 		case 0x07: // 0xFX07: Sets VX to the value of the delay timer
+			X := opcode & 0x0F00 >> 8
+			c.v[X] = c.delayTimer
 			break
 		case 0x0A: // 0xFX0A: A key press is awaited, and then stored in VX
+			X := opcode & 0x0F00 >> 8
+			keypress := false
+			for i := 0; i < 16; i++ {
+				if c.Key[i] != 0 {
+					c.v[X] = uint8(i)
+					keypress = true
+					break
+				}
+			}
+			if !keypress {
+				return
+			}
+			c.pc += 2
 			break
 		case 0x15: // 0xFX15: Sets the delay timer to VX
 			X := opcode & 0x0F00 >> 8
