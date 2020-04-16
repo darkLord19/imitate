@@ -8,8 +8,9 @@ jobs:
       # specify the version
       - image: circleci/golang:1.13
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/darkLord19/imitate
     steps:
       - checkout
 
-      - run: go build
+      - run: go build main.go
+      - run: go build ./cpu/chip8
